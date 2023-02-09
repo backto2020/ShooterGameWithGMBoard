@@ -9,6 +9,8 @@ AShooterPlayerState::AShooterPlayerState(const FObjectInitializer& ObjectInitial
 	TeamNumber = 0;
 	NumKills = 0;
 	NumDeaths = 0;
+	DamagingCount = 0.0f;
+	DamagedCount = 0.0f;
 	NumBulletsFired = 0;
 	NumRocketsFired = 0;
 	bQuitter = false;
@@ -22,6 +24,8 @@ void AShooterPlayerState::Reset()
 	//SetTeamNum(0);
 	NumKills = 0;
 	NumDeaths = 0;
+	DamagingCount = 0.0f;
+	DamagedCount = 0.0f;
 	NumBulletsFired = 0;
 	NumRocketsFired = 0;
 	bQuitter = false;
@@ -121,6 +125,16 @@ int32 AShooterPlayerState::GetDeaths() const
 	return NumDeaths;
 }
 
+float AShooterPlayerState::GetDamagingCount() const
+{
+	return DamagingCount;
+}
+
+float AShooterPlayerState::GetDamagedCount() const
+{
+	return DamagedCount;
+}
+
 int32 AShooterPlayerState::GetNumBulletsFired() const
 {
 	return NumBulletsFired;
@@ -151,6 +165,16 @@ void AShooterPlayerState::ScoreDeath(AShooterPlayerState* KilledBy, int32 Points
 {
 	NumDeaths++;
 	ScorePoints(Points);
+}
+
+void AShooterPlayerState::CountDamaging(float Damage)
+{
+	DamagingCount+=Damage;
+}
+
+void AShooterPlayerState::CountDamaged(float Damage)
+{
+	DamagedCount+=Damage;
 }
 
 void AShooterPlayerState::ScorePoints(int32 Points)
@@ -212,6 +236,8 @@ void AShooterPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(AShooterPlayerState, TeamNumber);
 	DOREPLIFETIME(AShooterPlayerState, NumKills);
 	DOREPLIFETIME(AShooterPlayerState, NumDeaths);
+	DOREPLIFETIME(AShooterPlayerState, DamagingCount);
+	DOREPLIFETIME(AShooterPlayerState, DamagedCount);
 	DOREPLIFETIME(AShooterPlayerState, MatchId);
 }
 

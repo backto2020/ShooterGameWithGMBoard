@@ -111,6 +111,9 @@ class AShooterWeapon : public AActor
 		EMax,
 	};
 
+	/** full the ammo to the max capacity*/
+	void FullAmmo();
+
 	/** [server] add ammo */
 	void GiveAmmo(int AddAmount);
 
@@ -280,6 +283,11 @@ class AShooterWeapon : public AActor
 
 	/** gets the duration of equipping weapon*/
 	float GetEquipDuration() const;
+
+public:
+
+	/** ignore ammo usage when shooting*/
+	bool IgnoreAmmoUsage;
 
 protected:
 

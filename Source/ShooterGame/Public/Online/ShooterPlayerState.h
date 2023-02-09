@@ -39,6 +39,12 @@ class AShooterPlayerState : public APlayerState
 	/** player died */
 	void ScoreDeath(AShooterPlayerState* KilledBy, int32 Points);
 
+	/** count number of health the player has damaged */
+	void CountDamaging(float Damage);
+
+	/** count number of health the player has been damaged */
+	void CountDamaged(float Damage);
+
 	/** get current team */
 	int32 GetTeamNum() const;
 
@@ -47,6 +53,12 @@ class AShooterPlayerState : public APlayerState
 
 	/** get number of deaths */
 	int32 GetDeaths() const;
+
+	/** get number of health the player has damaged */
+	float GetDamagingCount() const;
+
+	/** get number of health the player has been damaged */
+	float GetDamagedCount() const;
 
 	/** get number of bullets fired this match */
 	int32 GetNumBulletsFired() const;
@@ -102,6 +114,14 @@ protected:
 	/** number of deaths */
 	UPROPERTY(Transient, Replicated)
 	int32 NumDeaths;
+
+ /** number of health the player has damaged */
+	UPROPERTY(Transient, Replicated)
+	float DamagingCount;
+
+ /** number of health the player has been damaged */
+	UPROPERTY(Transient, Replicated)
+	float DamagedCount;
 
 	/** number of bullets fired this match */
 	UPROPERTY()

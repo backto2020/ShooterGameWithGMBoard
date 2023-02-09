@@ -51,6 +51,7 @@ AShooterWeapon::AShooterWeapon(const FObjectInitializer& ObjectInitializer) : Su
 	SetRemoteRoleForBackwardsCompat(ROLE_SimulatedProxy);
 	bReplicates = true;
 	bNetUseOwnerRelevancy = true;
+	IgnoreAmmoUsage = false;
 }
 
 void AShooterWeapon::PostInitializeComponents()
@@ -357,6 +358,10 @@ bool AShooterWeapon::CanReload() const
 //////////////////////////////////////////////////////////////////////////
 // Weapon usage
 
+void AShooterWeapon::FullAmmo() {
+	GiveAmmo(WeaponConfig.MaxAmmo);
+}
+
 void AShooterWeapon::GiveAmmo(int AddAmount)
 {
 	const int32 MissingAmmo = FMath::Max(0, WeaponConfig.MaxAmmo - CurrentAmmo);
@@ -380,12 +385,12 @@ void AShooterWeapon::GiveAmmo(int AddAmount)
 
 void AShooterWeapon::UseAmmo()
 {
-	if (!HasInfiniteAmmo())
+	if (!HasInfiniteAmmo() && !IgnoreAmmoUsage)
 	{
 		CurrentAmmoInClip--;
 	}
 
-	if (!HasInfiniteAmmo() && !HasInfiniteClip())
+	if (!HasInfiniteAmmo() && !HasInfiniteClip() && !IgnoreAmmoUsage)
 	{
 		CurrentAmmo--;
 	}

@@ -9,6 +9,7 @@
 #include "Animation/AnimInstance.h"
 #include "Sound/SoundNodeLocalPlayer.h"
 #include "AudioThread.h"
+#include <imgui.h>
 
 static int32 NetVisualizeRelevancyTestPoints = 0;
 FAutoConsoleVariableRef CVarNetVisualizeRelevancyTestPoints(
@@ -67,6 +68,9 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
+
+	IgnoreDamage = false;
+	IgnoreAmmoUsage = false;
 }
 
 void AShooterCharacter::PostInitializeComponents()
@@ -256,6 +260,10 @@ void AShooterCharacter::KilledBy(APawn* EventInstigator)
 
 float AShooterCharacter::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser)
 {
+	if (IgnoreDamage) {
+		return 0.0f;
+	}
+
 	AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
 	if (MyPC && MyPC->HasGodMode())
 	{
@@ -285,6 +293,19 @@ float AShooterCharacter::TakeDamage(float Damage, struct FDamageEvent const& Dam
 		}
 
 		MakeNoise(1.0f, EventInstigator ? EventInstigator->GetPawn() : this);
+	}
+
+
+	AShooterCharacter* ShooterChar = Cast<AShooterCharacter>(EventInstigator->GetCharacter());
+	if (ShooterChar) {
+		AShooterPlayerState* ShooterPlayerState = Cast<AShooterPlayerState>(ShooterChar->GetPlayerState());
+		if (ShooterPlayerState) {
+			ShooterPlayerState->CountDamaging(ActualDamage);
+		}
+	}
+	AShooterPlayerState* MyPlayerState = Cast<AShooterPlayerState>(GetPlayerState());
+	if(MyPlayerState) {
+		MyPlayerState->CountDamaged(ActualDamage);
 	}
 
 	return ActualDamage;
@@ -1067,9 +1088,53 @@ bool AShooterCharacter::IsRunning() const
 	return (bWantsToRun || bWantsToRunToggled) && !GetVelocity().IsZero() && (GetVelocity().GetSafeNormal2D() | GetActorForwardVector()) > -0.1;
 }
 
+void AShooterCharacter::FullAmmoOfCurrentWeapon() {
+	CurrentWeapon->FullAmmo();
+}
+
+void AShooterCharacter::FullAmmoOfAllWeapon() {
+	for (int32 i=0; i<Inventory.Num(); i++) {
+		Inventory[i]->FullAmmo();
+	}
+}
+
 void AShooterCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	if (!bIsDying && !IsPendingKill()) {
+		const FString Label = GetActorLabel();
+		ImGui::Begin(TCHAR_TO_ANSI(*Label), nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+		if (ImGui::CollapsingHeader("Damage Data")) {
+			AShooterPlayerState* MyPlayerState = Cast<AShooterPlayerState>(GetPlayerState());
+			ImGui::Text("Kills: %d", MyPlayerState->GetKills());
+			ImGui::Text("Deaths: %d", MyPlayerState->GetDeaths());
+			ImGui::Text("Damaging: %.1f", MyPlayerState->GetDamagingCount());
+			ImGui::Text("Damaged: %.1f", MyPlayerState->GetDamagedCount());
+		}
+		if (ImGui::CollapsingHeader("Modifier")) {
+			if (ImGui::Button("Full Health"))
+				Health = GetMaxHealth();
+			ImGui::SliderFloat("Health", &Health, 0.0f, 100.0f);
+			ImGui::Text("HeathMax: 50.0");
+
+			ImGui::Spacing();
+			if (ImGui::Button("Full Ammo of Current Weapon"))
+				FullAmmoOfCurrentWeapon();
+			if (ImGui::Button("Full Ammo of All Weapon"))
+				FullAmmoOfAllWeapon();
+
+			ImGui::Spacing();
+			ImGui::Checkbox("Ignore Damage", &IgnoreDamage);
+			ImGui::SameLine();
+			ImGui::Checkbox("Ignore Ammo Usage", &IgnoreAmmoUsage);
+		}
+		ImGui::End();
+
+		if (CurrentWeapon != NULL) {
+			CurrentWeapon->IgnoreAmmoUsage = IgnoreAmmoUsage;
+		}
+	}
 
 	if (bWantsToRunToggled && !IsRunning())
 	{

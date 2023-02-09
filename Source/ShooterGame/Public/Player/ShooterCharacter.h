@@ -399,6 +399,12 @@ private:
 
 public:
 
+	/** Identifies if to ignore being damaged*/
+	bool IgnoreDamage;
+
+	/** Identifies if to ignore ammo usage when shooting*/
+	bool IgnoreAmmoUsage;
+
 	/** Identifies if pawn is in its dying state */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Health)
 	uint32 bIsDying : 1;
@@ -453,6 +459,12 @@ protected:
 
 	//////////////////////////////////////////////////////////////////////////
 	// Inventory
+
+	/** full the ammo of current weapon*/
+	void FullAmmoOfCurrentWeapon();
+
+	/** full the ammo of all equipped weapons*/
+	void FullAmmoOfAllWeapon();
 
 	/** updates current weapon */
 	void SetCurrentWeapon(class AShooterWeapon* NewWeapon, class AShooterWeapon* LastWeapon = NULL);
